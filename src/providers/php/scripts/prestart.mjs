@@ -3,22 +3,28 @@ import { compileTemplate } from "./config/template.mjs";
 import { e } from "./util/cmd.mjs";
 import { checkEnvErrors, isLaravel } from "./util/laravel.mjs";
 import Logger from "./util/logger.mjs";
-import { access, constants } from 'node:fs/promises'
+import { access, constants } from "node:fs/promises";
+import { isSymfony } from "./util/symfony.mjs";
 
-const prestartLogger = new Logger('prestart');
-const serverLogger = new Logger('server');
+const prestartLogger = new Logger("prestart");
+const serverLogger = new Logger("server");
 
 if (process.argv.length != 4) {
-    prestartLogger.error(`Usage: ${process.argv[1]} <config-file> <output-file>`)
-    process.exit(1);
+  prestartLogger.error(`Usage: ${process.argv[1]} <config-file> <output-file>`);
+  process.exit(1);
 }
 
 await Promise.all([
-    isLaravel() ? checkEnvErrors('/app') : Promise.resolve(),
-    access('/app/storage', constants.R_OK)
-        .then(() => e('chmod -R ugo+rw /app/storage'))
-        .catch(() => {}),
-    compileTemplate(process.argv[2], process.argv[3])
-]).catch(err => prestartLogger.error(err));
+  isLaravel() ? checkEnvErrors("/app") : Promise.resolve(),
+  isSymfony()
+    ? access("/app/var", constants.R_OK)
+        .then(() => e("chmod -R ugo+rw /app/var"))
+        .catch(() => {})
+    : Promise.resolve(),
+  access("/app/storage", constants.R_OK)
+    .then(() => e("chmod -R ugo+rw /app/storage"))
+    .catch(() => {}),
+  compileTemplate(process.argv[2], process.argv[3]),
+]).catch((err) => prestartLogger.error(err));
 
-serverLogger.info(`Server starting on port ${process.env.PORT}`)
+serverLogger.info(`Server starting on port ${process.env.PORT}`);

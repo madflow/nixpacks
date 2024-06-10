@@ -154,6 +154,7 @@ impl PhpProvider {
             "scripts/util/nix.mjs" => include_str!("scripts/util/nix.mjs"),
             "scripts/config/template.mjs" => include_str!("scripts/config/template.mjs"),
             "scripts/util/laravel.mjs" => include_str!("scripts/util/laravel.mjs"),
+            "scripts/util/symfony.mjs" => include_str!("scripts/util/symfony.mjs"),
             "scripts/util/logger.mjs" => include_str!("scripts/util/logger.mjs")
         }
     }
@@ -163,6 +164,13 @@ impl PhpProvider {
         vars.insert("PORT".to_string(), "80".to_string());
         if app.includes_file("artisan") {
             vars.insert("IS_LARAVEL".to_string(), "yes".to_string());
+            vars.insert(
+                "NIXPACKS_PHP_ROOT_DIR".to_string(),
+                "/app/public".to_string(),
+            );
+        }
+        if app.includes_file("symfony.lock") {
+            vars.insert("IS_SYMFONY".to_string(), "yes".to_string());
             vars.insert(
                 "NIXPACKS_PHP_ROOT_DIR".to_string(),
                 "/app/public".to_string(),
